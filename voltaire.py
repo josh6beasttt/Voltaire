@@ -7,13 +7,14 @@ from subprocess import call
 commandlist = ["pslist", "pstree", "netscan", "psxview", "consoles", "psscan", "mutantscan", "cmdscan"]
 
 # Valid profiles
-validprofiles = dict.fromkeys(
+valid_profiles = dict.fromkeys(
     ["VistaSP0x64", "VistaSP0x86", "VistaSP1x64", "VistaSP1x86", "VistaSP2x64", "VistaSP2x86", "Win10x64",
-     "Win10x86", "Win2003SP0x86", "Win2003SP1x64", "Win2003SP1x86", "Win2003SP2x64", "Win2003SP2x86",
-     "Win2008R2SP0x64", "Win2008R2SP1x64", "Win2008SP1x64", "Win2008SP1x86", "Win2008SP2x64",
-     "Win2008SP2x86", "Win2012R2x64", "Win2012x64", "Win7SP0x64", "Win7SP0x86", "Win7SP1x64", "Win7SP1x86",
-     "Win81U1x64", "Win81U1x86", "Win8SP0x64", "Win8SP0x86", "Win8SP1x64", "Win8SP1x86", "WinXPSP1x64",
-     "WinXPSP2x64", "WinXPSP2x86", "WinXPSP3x86"])
+     "Win10x64_10586", "Win10x64_14393", "Win10x86", "Win10x86_10586", "Win2003SP0x86", "Win2003SP1x64",
+     "Win10x86_14393", "Win2003SP1x86", "Win2003SP2x64", "Win2003SP2x86", "Win2008R2SP0x64", "Win2008R2SP1x64",
+     "Win2008R2SP1x64_23418", "Win2008SP1x64", "Win2008SP1x86", "Win2008SP2x64", "Win2008SP2x86", "Win2012R2x64",
+     "Win2012R2x64_18340", "Win2012x64", "Win2016x64_14393", "Win7SP0x64", "Win7SP0x86", "Win7SP1x64",
+     "Win7SP1x64_23418", "Win7SP1x86", "Win7SP1x86_23418", "Win81U1x64", "Win81U1x86", "Win8SP0x64", "Win8SP0x86",
+     "Win8SP1x64", "Win8SP1x64_18340", "Win8SP1x86", "WinXPSP1x64", "WinXPSP2x64", "WinXPSP2x86", "WinXPSP3x86"])
 
 
 def volcall(program, command, args):
@@ -53,7 +54,7 @@ if __name__ == "__main__":
         print("Destination directory: {dest}".format(dest=args["dest"]))
 
     if "profile" in args:
-        if args["profile"] in validprofiles:
+        if args["profile"] in valid_profiles:
             print("Profile name: {profile}".format(profile=args["profile"]))
         else:
             print("Profile not valid: {profile}".format(profile=args["profile"]))
