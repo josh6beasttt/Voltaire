@@ -20,10 +20,10 @@ valid_profiles = dict.fromkeys(
 
 
 def filter_mutantscan(args):
-    args["dest"] = os.path.abspath(args["dest"]) + os.sep
-    logfile = "{path}ES{number}_{command}.txt".format(path=args["dest"], number=args["es"],
+    path = os.path.abspath(args["dest"]) + os.sep
+    logfile = "{path}ES{number}_{command}.txt".format(path=path, number=args["es"],
                                                       command="mutantscan -s")
-    outfile = "{path}mutantscan_filter.txt".format(path=args["dest"])
+    outfile = "{path}mutantscan_filter.txt".format(path=args["dest"] + os.sep)
     open_outfile = open(outfile, "w", encoding='utf-8')
 
     nameMap = {}
@@ -34,9 +34,8 @@ def filter_mutantscan(args):
         open_outfile.write(next(f))
         for line in f:
             for word in line.split():
-                if (not re.search("0x\w{16}|\.\.\.", word) and not word.isdigit()):
+                if not re.search("0x\w{16}|\.\.\.", word) and not word.isdigit():
                     add_line_flag = 1
-
 
             if (add_line_flag == 1):
                 nameMap[word] = line
@@ -47,11 +46,11 @@ def filter_mutantscan(args):
 
 
 def filter_netscan(args):
-    args["dest"] = os.path.abspath(args["dest"]) + os.sep
-    logfile = "{path}ES{number}_{command}.txt".format(path=args["dest"], number=args["es"],
+    path = os.path.abspath(args["dest"]) + os.sep
+    logfile = "{path}ES{number}_{command}.txt".format(path=path, number=args["es"],
                                                       command="netscan")
 
-    outfile = "{path}netscan_filter.txt".format(path=args["dest"])
+    outfile = "{path}netscan_filter.txt".format(path=args["dest"] + os.sep)
     open_outfile = open(outfile, "w", encoding='utf-8')
 
     with open(logfile, encoding='utf-8') as f:
@@ -59,11 +58,11 @@ def filter_netscan(args):
         open_outfile.write(next(f))
         for line in f:
             for word in line.split():
-                if(re.search("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", word)):
+                if (re.search("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", word)):
                     add_line_flag = 1
-                    #if(word == )
+                    # if(word == )
 
-            if(add_line_flag == 1):
+            if (add_line_flag == 1):
                 open_outfile.write(line)
                 add_line_flag = 0
 
@@ -71,18 +70,18 @@ def filter_netscan(args):
 def filter_pslist(args):
     path = os.path.abspath(args["dest"]) + os.sep
     logfile = "{path}ES{number}_{command}.txt".format(path=path, number=args["es"], command="pslist")
+    program = os.path.abspath("vol.exe") if is_windows else "vol.py"
 
     with open(logfile, encoding='utf-8') as f:
+        next(f)
+        next(f)
         for line in f:
-            command = "{command} -p {pid}".format(command="procmemdump", pid=line[3])
-            args["dest"] = "{path}{dump}ES{number}_{pid}.txt".format(path=path, dump="procmemdump" + os.sep,
-                                                                number=args["es"], pid=line[3])
-            individual_scan(args, command)
+            words = line.split()
+            command = "{command} -p {pid}".format(command="procdump", pid=words[2])
+            run_command(args, program, command)
 
 
 def individual_scan(args, command):
-    is_valid(args)
-
     program = os.path.abspath("vol.exe") if is_windows else "vol.py"
 
     run_command(args, program, command)
@@ -127,15 +126,21 @@ def is_valid(args):
 def run_command(args, program, command):
     path = args["dest"] + os.sep
     outfile = "{path}ES{number}_{command}.txt".format(path=path, number=args["es"], command=command)
+    outflag = "--output-file="
+
+    if re.search("procdump", outfile):
+        outflag = "--dump-dir="
+        outfile = path + "procdump"
 
     if "profile" in args:
-        params = "-f {src} --profile={profile} {command} --output-file=\"{dest}\"".format(src=args["src"],
-                                                                                          profile=args["profile"],
-                                                                                          command=command,
-                                                                                          dest=outfile)
+        params = "-f {src} --profile={profile} {command} {destflag}\"{dest}\"".format(src=args["src"],
+                                                                                       profile=args["profile"],
+                                                                                       command=command,
+                                                                                       destflag=outflag,
+                                                                                       dest=outfile)
     else:
-        params = "-f {src} {command} --output-file=\"{dest}\"".format(src=args["src"], command=command,
-                                                                      dest=outfile)
+        params = "-f {src} {command} {destflag}\"{dest}\"".format(src=args["src"], command=command, destflag=outflag,
+                                                                   dest=outfile)
 
     print("{program} {params}".format(program=program, params=params))
     result = call("{program} {params}".format(program=program, params=params))
@@ -150,13 +155,17 @@ def run_command(args, program, command):
         outfile = "\"{outfile}\"".format(outfile="{path}ES{number}_autorun.txt".format(path=path, number=args["es"]))
         print("Starting {command}".format(command=command))
 
+        if re.search("procdump", outfile):
+            outflag = "--dump-dir="
+            outfile = path + "procdump"
+
         if "profile" in args:
-            params = "-f {src} --profile={profile} printkey \"Software\\Microsoft\\Windows\\CurrentVersion\\Run\" --output-file={dest}".format(
-                src=args["src"], profile=args["profile"], dest=outfile)
+            params = "-f {src} --profile={profile} printkey \"Software\\Microsoft\\Windows\\CurrentVersion\\Run\" {destflag}{dest}".format(
+                src=args["src"], profile=args["profile"], destflag=outflag, dest=outfile)
 
         else:
-            params = "-f {src} printkey \"Software\\Microsoft\\Windows\\CurrentVersion\\Run\" --output-file={dest}".format(
-                src=args["src"], dest=outfile)
+            params = "-f {src} printkey \"Software\\Microsoft\\Windows\\CurrentVersion\\Run\" {destflag}{dest}".format(
+                src=args["src"], destflag=outflag, dest=outfile)
 
         result = call("{program} {params}".format(program=program, params=params))
 
