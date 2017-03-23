@@ -18,6 +18,25 @@ valid_profiles = dict.fromkeys(
      "Win81U1x64", "Win81U1x86", "Win8SP0x64", "Win8SP0x86", "Win8SP1x64", "Win8SP1x86", "WinXPSP1x64",
      "WinXPSP2x64", "WinXPSP2x86", "WinXPSP3x86"])
 
+public_ip_addresses_to_exclude = '|'.join([
+    "(^0\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5])))",
+    "(^10\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5])))",
+    "(^100\.(6[4-9]|[7-9][0-9]|1([0-1][0-9]|2[0-7]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5])))",
+    "(^127\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5])))",
+    "(^169\.254\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5])))",
+    "(^172\.(1[6-9]|2[0-9]|3[0-1])\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5])))",
+    "(^192\.0\.0\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5])))",
+    "(^192\.0\.2\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5])))",
+    "(^192\.88\.99\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5])))",
+    "(^192\.168\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5])))",
+    "(^198\.(1[8-9])\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5])))",
+    "(^198\.51\.100\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5])))",
+    "(^203\.0\.113\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5])))",
+    "(^(2(2[4-9]|3[0-9]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5])))",
+    "(^(2(4[0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5])))"])
+
+valid_ip_addresses = "^([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))\.([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))"
+
 
 def filter_mutantscan(args):
     path = os.path.abspath(args["dest"]) + os.sep
@@ -54,17 +73,10 @@ def filter_netscan(args):
     open_outfile = open(outfile, "w", encoding='utf-8')
 
     with open(logfile, encoding='utf-8') as f:
-        add_line_flag = 0
         open_outfile.write(next(f))
         for line in f:
-            for word in line.split():
-                if (re.search("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", word)):
-                    add_line_flag = 1
-                    # if(word == )
-
-            if (add_line_flag == 1):
+            if is_in_range(line):
                 open_outfile.write(line)
-                add_line_flag = 0
 
 
 def filter_pslist(args):
@@ -96,6 +108,19 @@ def scan(args):
                     "dlllist", "filescan", "iehistory", "svcscan", "modules", "modscan", "sessions", "messagehooks",
                     "windows", "wintree", "clipboard", "deskscan"]:
         run_command(args, program, command)
+
+
+def is_in_range(line):
+    add_line_flag = 0
+    for word in line.split():
+        if re.search(valid_ip_addresses, word) and not re.search(public_ip_addresses_to_exclude, word):
+            add_line_flag = 1
+            break
+
+    if add_line_flag == 1:
+        return True
+    else:
+        return False
 
 
 def is_valid(args):
@@ -134,13 +159,13 @@ def run_command(args, program, command):
 
     if "profile" in args:
         params = "-f {src} --profile={profile} {command} {destflag}\"{dest}\"".format(src=args["src"],
-                                                                                       profile=args["profile"],
-                                                                                       command=command,
-                                                                                       destflag=outflag,
-                                                                                       dest=outfile)
+                                                                                      profile=args["profile"],
+                                                                                      command=command,
+                                                                                      destflag=outflag,
+                                                                                      dest=outfile)
     else:
         params = "-f {src} {command} {destflag}\"{dest}\"".format(src=args["src"], command=command, destflag=outflag,
-                                                                   dest=outfile)
+                                                                  dest=outfile)
 
     print("{program} {params}".format(program=program, params=params))
     result = call("{program} {params}".format(program=program, params=params))
